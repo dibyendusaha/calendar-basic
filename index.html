@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900" rel="stylesheet" />
+    <link href="https://use.fontawesome.com/releases/v5.0.9/css/all.css" rel="stylesheet" />
+    <title>jQuery Calendar</title>
+    <style>
+        *,
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+        }
+
+        body {
+            width: 600px;
+            height: 600px;
+            margin: 30px auto;
+        }
+
+        .calendar__demo {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            border-radius: 2px;
+            box-shadow: 0 5px 5px -3px rgba(0, 0, 0, .2), 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12);
+        }
+
+        /* header */
+
+        .calendar__demo>.calendar__header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 2em 1em 1em;
+            color: #555;
+        }
+
+        .calendar__demo>.calendar__header>h1,
+        .calendar__demo>.calendar__header>h2 {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .calendar__demo>.calendar__header>h1 {
+            flex: 1 0 75%;
+            cursor: pointer;
+        }
+
+        .calendar__demo>.calendar__header>h1>i.fas {
+            position: relative;
+            top: -2px;
+            left: 2px;
+            cursor: pointer;
+        }
+
+        .calendar__demo>.calendar__header>h2 {
+            flex: 0 0 60px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .calendar__demo>.calendar__header>h2>* {
+            cursor: pointer;
+        }
+
+        .calendar__demo>.calendar__header>h2>span {
+            font-size: 1.025em;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* header */
+
+        /* aside */
+
+        .calendar__demo>.calendar__weekdays {
+            display: flex;
+            flex-direction: row;
+            /* justify-content: space-between; */
+            padding: 1em 0.25em 0.5em;
+            border-bottom: 1px solid #ccc;
+            text-align: center;
+            color: #ccc;
+        }
+
+        .calendar__demo>.calendar__weekdays>span {
+            /* flex: 0 0 calc((100% / 7) - 2px);
+            margin: 1px; */
+            flex: 0 0 calc(100% / 7);
+            font-size: 0.85em;
+        }
+
+        /* aside */
+
+        /* main section */
+
+        .calendar__demo>.calendar__days {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            /* justify-content: space-between; */
+            padding: 1em 0.25em;
+            text-align: center;
+            color: #777;
+        }
+
+        .calendar__demo>.calendar__days>span {
+            box-sizing: border-box;
+            position: relative;
+            /* flex: 0 0 calc((100% / 7) - 2px);
+            margin: 1px; */
+            flex: 0 0 calc(100% / 7);
+            padding: calc((100% / 14)) 0;
+        }
+
+        .calendar__demo>.calendar__days>span>span {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 90%;
+            height: 90%;
+            background: transparent;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            font-size: 0.85em;
+            cursor: pointer;
+        }
+
+        .calendar__demo>.calendar__days>span:not(.empty__cell)>span:hover {
+            background: #eee;
+        }
+
+        .calendar__demo>.calendar__days>span>span.today {
+            border-color: #999;
+        }
+
+        .calendar__demo>.calendar__days>span.empty__cell>span {
+            cursor: default;
+        }
+
+        /* main section */
+
+        /* selected date */
+
+        .calendar__demo>.calendar__days>span>span.selected,
+        .calendar__demo>.calendar__days>span>span.selected:hover {
+            border-color: royalblue;
+            background: royalblue;
+            color: #fff;
+        }
+
+        .calendar__demo>.calendar__days>span>span.today.selected,
+        .calendar__demo>.calendar__days>span>span.today.selected:hover {
+            -webkit-box-shadow: inset 0 0 0 1px #fff;
+            box-shadow: inset 0 0 0 1px #fff;
+        }
+
+        /* selected date */
+    </style>
+</head>
+
+<body>
+    <div class="date" style="margin-bottom: 25px;"></div>
+    <div class="calendar"></div>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script>
+        var __selectedDate; // global variable to store the selected date
+        function __calendar(control) { // main calendar function
+            // var __dateStatus = (control && control !== undefined && control !== '') ? false : true;
+            // var __todayCSSClass = __dateStatus ? 'today' : '';
+
+            var htmlContent = '';
+            var febNumberOfDays = 28;
+            var counter = 1;
+
+            var date = (control && control !== undefined && control !== '') ? new Date(control) : new Date();
+            var day = date.getDate();
+            var month = date.getMonth();
+            var year = date.getFullYear();
+
+            var nextMonth = month + 1;
+            var prevMonth = month - 1;
+
+            if (month === 1) {
+                if (year % 100 !== 0 && year % 4 === 0 || year % 400 === 0) {
+                    febNumberOfDays = 29;
+                }
+            }
+
+            var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            var dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thrusday', 'Friday', 'Saturday'];
+            var dayPerMonth = ['31', '' + febNumberOfDays + '', '31', '30', '31', '30', '31', '31', '30', '31', '30', '31'];
+
+            var nextDay = new Date(nextMonth + ' 1 ,' + year);
+            var weekDays = nextDay.getDay();
+            var weekDays2 = weekDays;
+            var numOfDays = dayPerMonth[month];
+
+            var __currentDate = __currentDateChecker(control); // to get today's date depending upon logic if it is from same month and year
+            var __isCurrentMonth = __currentMonthChecker(control); // to get current month depending upon logic of same month and year
+            var __getSelectedDate = __selectedDateChecker(__selectedDate, monthNames[month] + ', ' + year); // to get selected date from user depending upon logic and checking of same month and year between current selected month and calendar visible month
+            var __selectedDateCSSClass = ''; // variable to hold the class name when it will get selected date
+
+            while (weekDays > 0) {
+                htmlContent += '<span class="empty__cell"><span>&nbsp;</span></span>';
+                weekDays--;
+            }
+
+            while (counter <= numOfDays) {
+                if (weekDays2 > 6) {
+                    weekDays2 = 0;
+                }
+
+                __selectedDateCSSClass = (__getSelectedDate === counter) ? 'selected' : ''; // logic to check if __getSelectedDate === counter then chnage __selectedDateCSSClass value
+
+                if (counter === __currentDate) {
+                    htmlContent += '<span><span data-date="' + counter + ' ' + monthNames[month] + ', ' + year + '" class="today ' + __selectedDateCSSClass + '">' + counter + '</span></span>';/*' + __todayCSSClass + '*/
+                } else {
+                    htmlContent += '<span><span data-date="' + counter + ' ' + monthNames[month] + ', ' + year + '" class="' + __selectedDateCSSClass + '">' + counter + '</span></span>';
+                }
+
+                weekDays2++;
+                counter++;
+            }
+
+            var __month__year = monthNames[month] + ', ' + year; // current month and year in format
+            // check if previous month is December and next month is January
+            // var __prev__control = (month === 0) ? (__currentMonthChecker('December, ' + (year - 1)) ? '' : 'December, ' + (year - 1)) : (__currentMonthChecker(monthNames[month - 1] + ', ' + year) ? '' : monthNames[month - 1] + ', ' + year);
+            // var __next__control = (month === 11) ? (__currentMonthChecker('January, ' + (year + 1)) ? '' : 'January, ' + (year + 1)) : (__currentMonthChecker(monthNames[month + 1] + ', ' + year) ? '' : monthNames[month + 1] + ', ' + year);
+            var __prev__control = (month === 0) ? 'December, ' + (year - 1) : monthNames[month - 1] + ', ' + year; // check if current month is January, then previous month will be December and year will be 1 year back or else same year but 1 month back
+            var __next__control = (month === 11) ? 'January, ' + (year + 1) : monthNames[month + 1] + ', ' + year; // check if current month is December, then next month will be January and year will be 1 year ahead or else same year but 1 month ahead
+            // console.log(__prev__control, __next__control, (year + 1));
+
+            var __calendar = '<header class="calendar__header"><h1>' + __month__year + ' <i class="fas fa-sort-down"></i></h1><h2><i class="fas fa-chevron-left" data-month-changer="' + __prev__control + '"></i><i class="fas fa-chevron-right" data-month-changer="' + __next__control + '"></i></h2></header>';
+            __calendar += '<aside class="calendar__weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></aside>';
+            __calendar += '<section class="calendar__days">' + htmlContent + '</section>';
+            __calendar = '<main class="calendar__demo">' + __calendar + '</main>';
+
+            document.querySelector('.calendar').innerHTML = __calendar;
+
+            // logic to get the date if user selected date is from same month and year that of calendar viewing month and year
+            function __selectedDateChecker(selected, current) { // user selected date format, calendar viewing current date format
+                var __isValidSelectedDate = (selected && selected !== undefined && selected !== '') ? true : false; // if selected date is valid
+                var __isValidCurrentDate = (current && current !== undefined && current !== '') ? true : false; // if current date is valid
+
+                var __currentDate = __isValidCurrentDate ? new Date(current) : new date();
+                var __currentMonth = __currentDate.getMonth();
+                var __currentYear = __currentDate.getFullYear();
+
+                var __givenDate = __isValidSelectedDate ? new Date(selected) : new Date();
+                var __givenMonth = __givenDate.getMonth();
+                var __givenYear = __givenDate.getFullYear();
+                var __givenDay = __givenDate.getDate();
+
+                if (__selectedDate && __isValidSelectedDate && __currentMonth === __givenMonth && __currentYear === __givenYear) {
+                    return __givenDay;
+                } else {
+                    return 0;
+                }
+            }
+
+            // logic to get today's date if today's date is same as calendar viewing month and year
+            function __currentDateChecker(date) {
+                var __currentDate = new Date();
+                var __currentMonth = __currentDate.getMonth();
+                var __currentYear = __currentDate.getFullYear();
+                var __currentDay = __currentDate.getDate();
+
+                var __givenDate = (date && date !== undefined && date !== '') ? new Date(date) : new Date();
+                var __givenMonth = __givenDate.getMonth();
+                var __givenYear = __givenDate.getFullYear();
+
+                if (__currentMonth === __givenMonth && __currentYear === __givenYear) {
+                    return __currentDay;
+                } else {
+                    return 0;
+                }
+            }
+
+            function __currentMonthChecker(date) {
+                var __currentDate = new Date();
+                var __currentMonth = __currentDate.getMonth();
+                var __currentYear = __currentDate.getFullYear();
+
+                var __givenDate = new Date(date);
+                var __givenMonth = __givenDate.getMonth();
+                var __givenYear = __givenDate.getFullYear();
+
+                if (__currentMonth === __givenMonth && __currentYear === __givenYear) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        (function ($) {
+            $(function (e) {
+                __calendar(); // calling the actual function
+                // click on month changer control button to change calendar view
+                $(document).on('click', '[data-month-changer]', function (e) {
+                    var __data = $(this).data('month-changer');
+                    // console.log(__data);
+                    __calendar(__data);
+                });
+                // click on date to select the date
+                $(document).on('click', '[data-date]', function (e) {
+                    var __date = $(this).data('date');
+                    __selectedDate = __date;
+                    $('[data-date]').removeClass('selected');
+                    $(this).addClass('selected');
+                    $('.date').html(__date); // showing selected date
+                });
+            });
+        })(jQuery);
+    </script>
+
+
+
+    <!-- <div class="calendar__demo">
+        <header class="calendar__header">
+            <h1>April, 2018 <i class="fas fa-sort-down"></i></h1>
+            <h2><i class="fas fa-chevron-left"></i><i class="fas fa-chevron-right"></i></h2>
+        </header>
+        <aside class="calendar__weekdays">
+            <span>S</span>
+            <span>M</span>
+            <span>T</span>
+            <span>W</span>
+            <span>T</span>
+            <span>F</span>
+            <span>S</span>
+        </aside>
+        <section class="calendar__days">
+            <span><span>1</span></span>
+            <span><span class="today">2</span></span>
+            <span><span>3</span></span>
+            <span><span>4</span></span>
+            <span><span>5</span></span>
+            <span><span>6</span></span>
+            <span><span>7</span></span>
+            <span><span>8</span></span>
+            <span><span>9</span></span>
+            <span><span>10</span></span>
+            <span><span>11</span></span>
+            <span><span>12</span></span>
+            <span><span>13</span></span>
+            <span><span>14</span></span>
+            <span><span>15</span></span>
+            <span><span>16</span></span>
+            <span><span>17</span></span>
+            <span><span>18</span></span>
+            <span><span>19</span></span>
+            <span><span>20</span></span>
+            <span><span>21</span></span>
+            <span><span>22</span></span>
+            <span><span>23</span></span>
+            <span><span>24</span></span>
+            <span><span>25</span></span>
+            <span><span>26</span></span>
+            <span><span>27</span></span>
+            <span><span>28</span></span>
+            <span><span>29</span></span>
+            <span><span>30</span></span>
+            <span><span>31</span></span>
+        </section>
+    </div> -->
+</body>
+
+</html>
